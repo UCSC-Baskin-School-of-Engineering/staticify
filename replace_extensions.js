@@ -7,7 +7,7 @@ const file = fs.readFileSync(filename, { encoding: 'utf8' });
 
 const $ = cheerio.load(file);
 
-$("[href$='html']").each((_, el) => {
+$("[href$='html'],[src$='html']").each((_, el) => {
   el.attribs.href = el.attribs.href.substring(0, el.attribs.href.length - 5);
 });
 
