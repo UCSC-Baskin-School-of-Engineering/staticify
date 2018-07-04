@@ -13,10 +13,18 @@ The `--hide-html` option will remove the html extension from all href links in t
 Example: `bash getsite.sh www.example.com`
 
 ## Extra
-If you plan on using Apache to host the static site, include the following configurations to ignore `html` file extensions:
+If you plan on using Apache to host the static site, I recommend atleast the following configuration, which hides `html` file extensions:
 ```Apache
-RewriteEngine on
-RewriteCond %{REQUEST_FILENAME} !-d          # is not directory
-RewriteCond %{REQUEST_FILENAME}\.html -f     # is an existing html file
-RewriteRule ^(.*)$ $1.html                   # rewrite index to index.html
+<Directory /path/to/your/website/public_html>
+	Require all granted
+	DirectorySlash Off
+	RewriteEngine on
+	RewriteCond %{THE_REQUEST} /([^.]+)\.html [NC]
+	RewriteRule ^ /%1 [NC,L,R]
+	RewriteCond %{REQUEST_FILENAME}.html -f
+	RewriteRule ^ %{REQUEST_URI}.html [NC,L]
+</Directory>
+<VirtualHost *:80>
+	DocumentRoot /path/to/your/website/public_html
+</VirtualHost>
 ```
