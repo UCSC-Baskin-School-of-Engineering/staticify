@@ -26,6 +26,9 @@ $('#content').html(`
 <p>Sorry, the file you requested cannot be found.</p>
 `);
 
+// Load assets from root, not relative
+$('head').prepend('<base href="/" />');
+
 
 // Re-write file
 fs.writeFileSync(`${directory}/404.html`, $.html(), { encoding: 'utf8' });
