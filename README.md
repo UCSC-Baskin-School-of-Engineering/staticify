@@ -14,6 +14,7 @@ Example: `bash staticify.sh www.example.com`
 If you plan on using Apache to host the static site, I recommend atleast the following configuration, which hides `html` file extensions:
 ```Apache
 <Directory /path/to/your/website/public_html>
+	ErrorDocument 404 /404.html
 	Require all granted
 	DirectorySlash Off
 	RewriteEngine on

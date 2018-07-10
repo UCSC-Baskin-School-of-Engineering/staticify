@@ -7,12 +7,6 @@ const cheerio = require('cheerio');
 
 const filename = process.argv[2];
 
-// Handle bug: PDFs are ended with .html
-if (filename.endsWith('.pdf.html')) {
-  console.error(`Skipping pdf file: ${filename}`);
-  process.exit(1);
-}
-
 // Read file
 let fileContent;
 try {

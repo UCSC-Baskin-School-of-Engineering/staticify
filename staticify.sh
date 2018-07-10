@@ -34,6 +34,8 @@ while IFS= read -r -d '' file; do # this looping method allows spaces in filenam
 done < <(find $1 -type f -name '*.html' -print0)
 wait
 
+node create_404.js "$1"
+
 # Done!
 echo ""
 echo "Successfully staticified: $1"
