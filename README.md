@@ -1,12 +1,14 @@
 # Staticify
-Create a static mirror of a Drupal 7 website. 
+Create a static mirror of a Drupal 7 website.
+- Removes login and search forms
+- Creates a 404 page.
 
 ## Setup
 1. Install node.js ^8.0.0 (I prefer to install it with [nvm](https://github.com/creationix/nvm#installation))
 2. Run `npm install`
 
 ## Directions
-Run `bash staticify.sh <domain_name>` to generate a static site. A folder with the same name as the website will be generated containing the static content.
+Run `bash staticify.sh <domain_name>` to generate a static site. The static content will be downloaded to the directory: `./static_websites/<domain_name>`.
 
 Example: `bash staticify.sh www.example.com`
 
