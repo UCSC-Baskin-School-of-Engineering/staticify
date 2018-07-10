@@ -23,7 +23,7 @@ npm list cheerio > /dev/null
 mkdir $1
 
 # Create static copy of website
-wget -e robots=off -N -S -x -r -p --restrict-file-names=unix \
+wget -o $1/.download.log -e robots=off -N -S -x -r -p --restrict-file-names=unix \
     -l inf -E --convert-links --domains="`echo $1`" $1 || echo ""
 
 # Remove form pages
