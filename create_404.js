@@ -29,6 +29,9 @@ $('#content').html(`
 // Load assets from root, not relative
 $('head').prepend('<base href="/" />');
 
+// Remove nav-menu active class
+$('#block-system-main-menu ul li a.active').removeClass('active');
+
 
 // Re-write file
 fs.writeFileSync(`${directory}/404.html`, $.html(), { encoding: 'utf8' });

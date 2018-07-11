@@ -24,10 +24,10 @@ const $ = cheerio.load(fileContent);
 $('#search-block-form').remove();
 
 // Remove search page link
-$('#block-system-main-menu ul li > a[href^="/search"]').parent().remove();
-$('#block-system-main-menu ul li > a[href^="search"]').parent().remove();
+$('#block-system-main-menu ul li > a[href$="/search.html"]').parent().remove();
+$('#block-system-main-menu ul li > a[href="search.html"]').parent().remove();
 
-// Remove Log In link
+// Remove log-in link
 $('#block-soe-log-in-0').remove();
 
 
