@@ -1,10 +1,11 @@
-const fs = require('fs-extra');
-const { exec, spawn } = require('child_process');
-const cheerio = require('cheerio');
+const { exec } = require('child_process');
 const { join } = require('path');
+const fs = require('fs-extra');
+const cheerio = require('cheerio');
+
 
 const execAsync = (cmd, opts) => new Promise((resolve) => exec(cmd, opts, (err) => {
-  if (err) console.error('exec error:', err.code);
+  if (err) console.error('exec error:', err);
   resolve();
 }));
 
@@ -15,8 +16,8 @@ const rreaddirSync = (path) => {
   process.chdir(path);
 
   const rreaddir = (dir) => {
-    const children = fs.readdirSync(dir).map(f => join(dir, f));
-    for (const file of children) {
+    for (const _file of fs.readdirSync(dir)) {
+      const file = join(dir, _file);
       const stat = fs.statSync(file);
       size += stat.size;
       if (stat.isDirectory()) rreaddir(file);
@@ -55,6 +56,9 @@ const cleanHtml = ($) => {
   $('#block-system-main-menu ul li > a[href$="/search.html"]').parent().remove();
   $('#block-system-main-menu ul li > a[href="search.html"]').parent().remove();
 
+  // Remove biblio link
+  // $('#block-system-main-menu ul li > a[href*="biblio.html"]').parent().remove();
+
   // Remove log-in link
   $('#block-soe-log-in-0').remove();
 };
@@ -71,8 +75,8 @@ module.exports = async (domain) => {
 
   await fs.emptyDir(path);
 
-  await execAsync(`wget -o ${domain}/.download.log -e robots=off -N -S -x -r -p --restrict-file-names=unix \
-    -l inf -E --convert-links -X /search,/user,/system/files/secure-attachments \
+  await execAsync(`wget -q -e robots=off -x -r -p --restrict-file-names=unix \
+    -l inf -E --convert-links -X /search,/user,/system/files/secure*,/biblio \
     -D ${domain} ${domain}`, { cwd: './static_websites' });
 
   await fs.remove(`${path}/search.html`);
@@ -80,12 +84,14 @@ module.exports = async (domain) => {
   const { files, size } = rreaddirSync(path);
 
   if (!files.length) throw 'Failed to fetch website';
+
+  const resultInfo = {
+    size_kb: Math.round(size / 1024),
+    domain,
+    html_files: files.filter((file) => file.endsWith('.html')),
+  };
   
-  const html_files = files.filter((file) => file.endsWith('.html'));
-
-  let owner = null;
-
-  await Promise.all(html_files.map(async (file) => {
+  await Promise.all(resultInfo.html_files.map(async (file) => {
     const fileContents = (await fs.readFile(`${path}/${file}`, 'utf8')).toString();
 
     const $ = cheerio.load(fileContents);
@@ -95,25 +101,18 @@ module.exports = async (domain) => {
     await fs.outputFile(`${path}/${file}`, $.html());
 
     if (file === 'index.html') {
-      owner = getOwner($);
+      resultInfo.owner = getOwner($);
       await create404($, path);
     }
   }));
 
-  await fs.writeJson(`${path}/.staticify.json`, {
-    size_kb: Math.round(size / 1024.),
-    html_files,
-    owner,
-    domain,
-  }, { spaces: 2 });
+  await fs.writeJson(`${path}/.staticify.json`, resultInfo, { spaces: 2 });
 };
 
 
 if (require.main === module) {
   
-  const argv = require('minimist')(process.argv.slice(2));
-
-  const domain = argv._[0];
+  const domain = process.argv[2];
   if (!domain) {
     console.error('Usage: node staticify.js <domain_name>');
     process.exit(1);
@@ -125,4 +124,3 @@ if (require.main === module) {
     process.exit(1);
   });
 }
-
