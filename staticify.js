@@ -1,13 +1,16 @@
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 const { join } = require('path');
 const fs = require('fs-extra');
 const cheerio = require('cheerio');
 
 
-const execAsync = (cmd, opts) => new Promise((resolve) => exec(cmd, opts, (err) => {
-  if (err) console.error('exec error:', err);
-  resolve();
-}));
+const spawnAsync = (cmd_string, opts) => new Promise((resolve, reject) => {
+  const args = cmd_string.split(/\s+/);
+  const cmd = args.shift();
+
+  spawn(cmd, args, opts)
+  .once('close', (code) => code === 0 ? resolve(code) : reject(code));
+});
 
 const rreaddirSync = (path) => {
   const files = [];
@@ -75,9 +78,15 @@ module.exports = async (domain) => {
 
   await fs.emptyDir(path);
 
-  await execAsync(`wget -q -e robots=off -x -r -p --restrict-file-names=unix \
-    -l inf -E --convert-links -X /search,/user,/system/files/secure*,/biblio \
-    -D ${domain} ${domain}`, { cwd: './static_websites' });
+  try {
+    await spawnAsync(`wget -o ../.download.log -e robots=off -x -r -p --restrict-file-names=unix \
+-l inf -E --convert-links -X /search,/user,/system/files/secure*,/biblio \
+-D ${domain} ${domain}`, { cwd: './static_websites' });
+  } catch(code) {
+    if (code !== 8) throw `wget error code: ${code}. See file: ./.download.log`;
+  }
+
+  await fs.remove(`./.download.log`);
 
   await fs.remove(`${path}/search.html`);
 
