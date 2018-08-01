@@ -83,16 +83,17 @@ module.exports = async (domain) => {
 -l inf -E --convert-links -X /search,/user,/system/files/secure*,/biblio \
 -D ${domain} ${domain}`, { cwd: './static_websites' });
   } catch(code) {
-    if (code !== 8) throw `wget error code: ${code}. See file: ./.download.log`;
+    if (code !== 8)
+      throw `wget error code: ${code}. See file: ./.download.log`;
   }
-
-  await fs.remove(`./.download.log`);
 
   await fs.remove(`${path}/search.html`);
 
   const { files, size } = rreaddirSync(path);
 
-  if (!files.length) throw 'Failed to fetch website';
+  if (!files.length) throw 'Failed to fetch any content. See file: ./.download.log';
+
+  await fs.remove(`./.download.log`);
 
   const resultInfo = {
     size_kb: Math.round(size / 1024),

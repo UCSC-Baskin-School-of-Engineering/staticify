@@ -4,6 +4,9 @@ const { spawn } = require('child_process');
 const { promisify } = require('util');
 const GoogleSpreadsheet = require('google-spreadsheet');
 
+const SITE_PATH = './static_websites';
+const { www_path, username, spreadsheet_id } = require('./options.json');
+const creds = require('./creds.json');
 
 const pr = (fn, ...args) => promisify(fn)(...args);
 
@@ -20,17 +23,9 @@ const prompt = (question) => new Promise((resolve) => {
   });
 });
 
-
-const creds = require('./creds.json');
-const SPREADSHEET_ID = '10lpTpdJPxL-neGM6MbN43vlvWZw32N4xToPwhoxRNx4';
-const USER = 'Wyatt';
-const WWW_PATH = '/home/wyatt/Documents/Work/soe_migrate/public_html';
-const SITE_PATH = '/home/wyatt/Documents/Work/staticify/static_websites';
-
-
 const init = async () => {
 
-  const doc = new GoogleSpreadsheet(SPREADSHEET_ID);
+  const doc = new GoogleSpreadsheet(spreadsheet_id);
 
   await pr(doc.useServiceAccountAuth, creds);
 
@@ -43,34 +38,35 @@ const init = async () => {
 
 const getNextDomain = async (sheet) => {
 
-  await fs.ensureDir(WWW_PATH);
+  await fs.ensureDir(www_path);
 
-  if ((await fs.readdir(WWW_PATH)).length > 0) {
+  if ((await fs.readdir(www_path)).length > 0) {
     console.log('www directory is not empty, attempting removal...');
 
-    const info = await fs.readJson(`${WWW_PATH}/.staticify.json`);
+    const info = await fs.readJson(`${www_path}/.staticify.json`);
+    if (!info.domain) throw 'Undefined domain name in ./.staticify.json';
 
-    await fs.move(WWW_PATH, `${SITE_PATH}/${info.domain}`);
-    console.log('Moved to domain:', domain);
+    await fs.move(www_path, `${SITE_PATH}/${info.domain}`);
+    console.log('Moved to domain:', info.domain);
 
-    await fs.mkdir(WWW_PATH);
+    await fs.mkdir(www_path);
   }
 
-  const rows = await pr(sheet.getRows, { query: `auditor == "${USER}" and status == "In Progress"`, limit: 1 });
+  const rows = await pr(sheet.getRows, { query: `auditor == "${username}" and status == "In Progress"`, limit: 1 });
 
   if (rows.length === 0) throw 'No more rows!';
 
   const row = rows[0];
 
-  const domain = row.domains;
-  console.log('Loading domain:', domain);
+  console.log('Loading domain:', row.domain, 'into http:localhost');
 
-  if (!(await fs.exists(`${SITE_PATH}/${domain}`)))
-    throw `Domain '${domain}' is not downloaded!`;
+  if (!(await fs.exists(`${SITE_PATH}/${row.domain}`)))
+    throw `Domain '${row.domain}' is not downloaded!`;
 
-  await fs.move(`${SITE_PATH}/${domain}`, WWW_PATH, { overwrite: true });
+  await fs.move(`${SITE_PATH}/${row.domain}`, www_path, { overwrite: true });
 
-  const browser = spawn('google-chrome', ['--incognito', '--no-cache', '--new-window', 'localhost', `https://${domain}`]);
+  const browser = spawn('google-chrome', ['--incognito', '--no-cache',
+    '--new-window', 'localhost', `https://${row.domain}`]).on('error', () => {});
 
   return { row, browser };
 };
@@ -95,19 +91,20 @@ const saveDomain = async (row, cmd) => {
 init()
 .then(async (sheet) => {
 
-  while (true) {
+  let cmd;
+  do {
     const { row, browser } = await getNextDomain(sheet);
 
-    const cmd = await prompt('Good (<ENTER>), Exit (e), Not Drupal (n), or Note (<note>)?');
+    cmd = await prompt('Good (<ENTER>), Exit (e), Not Drupal (n), or Note (<note>)?');
 
     browser.kill();
 
-    await fs.move(WWW_PATH, `${SITE_PATH}/${row.domains}`);
+    await fs.move(www_path, `${SITE_PATH}/${row.domain}`);
 
-    if (cmd === 'e') break;
+    if (cmd !== 'e')
+      await saveDomain(row, cmd);
 
-    await saveDomain(row, cmd);
-  }
+  } while (cmd !== 'e');
 
   rl.close();
 })
