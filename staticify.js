@@ -1,4 +1,4 @@
-const { exec, spawn } = require('child_process');
+const { spawn } = require('child_process');
 const { join } = require('path');
 const fs = require('fs-extra');
 const cheerio = require('cheerio');
