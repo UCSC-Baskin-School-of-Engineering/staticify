@@ -58,7 +58,7 @@ const getNextDomain = async (sheet) => {
 
   const row = rows[0];
 
-  console.log('Loading domain:', row.domain, 'into http:localhost');
+  console.log(`Loading domain https://${row.domain} into http://localhost`);
 
   if (!(await fs.exists(`${SITE_PATH}/${row.domain}`)))
     throw `Domain '${row.domain}' is not downloaded!`;
@@ -66,7 +66,7 @@ const getNextDomain = async (sheet) => {
   await fs.move(`${SITE_PATH}/${row.domain}`, www_path, { overwrite: true });
 
   const browser = spawn('google-chrome', ['--incognito', '--no-cache',
-    '--new-window', 'localhost', `https://${row.domain}`]).on('error', () => {});
+    '--new-window', 'localhost', `https://${row.domain}`, `file://${www_path}/.staticify.json`]).on('error', () => {});
 
   return { row, browser };
 };
