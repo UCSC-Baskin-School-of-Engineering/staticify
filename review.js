@@ -73,16 +73,18 @@ const getNextDomain = async (sheet) => {
 
 const saveDomain = async (row, cmd) => {
   if (cmd === 'n') {
-    row.status = '?';
-    row.notes = 'Not Drupal';
-  } else if (cmd) {
-    row.status = 'Invalid';
-    row.notes = cmd;
+    row.status = '';
+    row.type = 'Other';
   } else {
     const info = await fs.readJson(`${SITE_PATH}/${row.domain}/.staticify.json`);
-    row.status = 'Good';
     row.sizekb = info.size_kb;
     row.owner = info.owner;
+    if (cmd) {
+      row.status = 'Invalid';
+      row.notes = cmd;
+    } else {
+      row.status = 'Good';
+    }
   }
 
   await pr(row.save);
