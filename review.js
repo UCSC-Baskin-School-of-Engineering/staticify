@@ -79,7 +79,7 @@ const saveDomain = async (row, cmd) => {
     row.status = 'Invalid';
     row.notes = cmd;
   } else {
-    const info = await fs.readJson(`${SITE_PATH}/${row.domains}/.staticify.json`);
+    const info = await fs.readJson(`${SITE_PATH}/${row.domain}/.staticify.json`);
     row.status = 'Good';
     row.sizekb = info.size_kb;
     row.owner = info.owner;
