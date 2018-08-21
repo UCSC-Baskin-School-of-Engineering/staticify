@@ -28,9 +28,16 @@ const rreaddirSync = (path) => {
     }
   }
 
-  rreaddir('.');
+  let error = null;
+  try {
+    rreaddir('.');
+  } catch(e) {
+    error = e;
+  }
 
   process.chdir('../..');
+
+  if (error) throw error;
 
   return { files, size };
 };
@@ -80,7 +87,7 @@ module.exports = async (domain) => {
 
   try {
     await spawnAsync(`wget -o ../.download.log -e robots=off -x -r -p --restrict-file-names=unix \
--l inf -E --convert-links -X /search,/user,/system/files/secure*,/biblio \
+-l inf -E --convert-links -X /search,/user,/biblio,/system/files/secure* -R biblio,aggregator \
 -D ${domain} ${domain}`, { cwd: './static_websites' });
   } catch(code) {
     if (code !== 8)
