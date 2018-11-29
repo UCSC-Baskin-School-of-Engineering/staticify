@@ -72,7 +72,7 @@ if (require.main === module) {
   Promise.resolve()
   .then(() => {
     const AMOUNT = Number.parseInt(process.argv[2]);
-    if (Number.isNaN(AMOUNT)) throw 'Usage: node bulk_staticify.js <amount>';
+    if (Number.isNaN(AMOUNT)) throw 'Usage: node spreadsheet_staticify.js <amount>';
     return AMOUNT;
   })
   .then(module.exports)

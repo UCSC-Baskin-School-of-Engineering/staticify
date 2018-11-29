@@ -10,10 +10,12 @@ Requires node.js 8+ (It can be installed with [Node Version Manager](https://git
 2. `cd staticify`
 3. `npm install`
 
-## Directions
-Run `node staticify.js <domain_name>` to generate a static site. The static content will be downloaded to the directory: `./static_websites/<domain_name>`.
+## Usage
+Run `node staticify.js <domain_name>...` to generate one or many static sites. 
 
 Example: `node staticify.js www.example.com`
+
+The static content will be downloaded to the directory: `./static_websites/<domain_name>`. That directory will also contain a file `.staticify.json` which contains information about the site.
 
 ---
 
@@ -39,21 +41,21 @@ If you plan on using Apache to host the static site, I recommend atleast the fol
 You may need to enable the `RewriteEngine` Apache module.
 
 ### Bulk Staticify
-You can bulk staticify websites with domains automatically fetched from a Google Spreadsheet by running `node bulk_staticify.js <amount>`.
+You can bulk staticify websites with domains automatically fetched from a Google Spreadsheet by running `node spreadsheet_staticify.js <amount>`.
 
 ### Review Static Websites
-You can set the status and take notes for each staticified website specified in the Google Spreadsheet by running `node review.js`. This
+You can set the status and take notes for each staticified website specified in the Google Spreadsheet by running `node spreadsheet_review.js`. This
 will move the static site to the Apache www folder, open the browser with the static site (only tested on Linux), and prompt the user for a command status, note, or exit.
 
 ---
-`bulk_staticify.js` and `review.js` BOTH REQUIRE the following files:
+`spreadsheet_staticify.js` and `spreadsheet_review.js` BOTH REQUIRE the following files:
 
 - `creds.json`: JSON credentials for a Google Service Account with access to your spreadsheat 
 - `options.json`:
   ```json
 	{
 		"spreadsheet_id": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-		"www_path": "/path/to/your/website/public_html",
+		"www_path": "/path/to/your/website/public_html", // only required by spreadsheet_review.js
 		"username": "will show up under 'auditor' field"
 	}
 	```

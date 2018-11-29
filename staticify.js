@@ -129,13 +129,16 @@ module.exports = async (domain) => {
 
 if (require.main === module) {
   
-  const domain = process.argv[2];
-  if (!domain) {
-    console.error('Usage: node staticify.js <domain_name>');
+  const domains = process.argv.slice(2);
+  if (domains.length === 0) {
+    console.error('Usage: node staticify.js <domain_name>...');
     process.exit(1);
   }
   
-  module.exports(domain)
+  (async () => {
+    for (const domain of domains)
+      await module.exports(domain)
+  })()
   .catch((err) => {
     console.error(err);
     process.exit(1);
